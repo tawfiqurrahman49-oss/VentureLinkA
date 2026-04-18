@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block title %}Create Account — VentureLink{% endblock %}
+
+{% block extra_head %}
+<script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+<style>
+    .auth-wrap {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6rem;
+        min-height: calc(100vh - 120px);
+        align-items: center;
+    }
+
+    .auth-hero .eyebrow {
+        font-size: 0.7rem;
+        font-weight: 500;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 1.5rem;
+        display: block;
+    }
+
+    .auth-hero h1 { margin-bottom: 1.5rem; }
+
+    .auth-hero p {
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.7;
+        max-width: 380px;
+    }
+
+    .auth-form { max-width: 400px; }
+    .auth-form h2 { margin-bottom: 2.5rem; font-weight: 400; }
+
+    .role-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+
+    .role-option { display: none; }
+
+    .role-option + label {
+        display: block;
+        padding: 1rem;
+        border: 1px solid var(--rule);
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+        text-align: center;
+    }
+
+    .role-option + label .role-title {
+        display: block;
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .role-option + label .role-sub {
+        font-size: 0.75rem;
+        color: var(--muted);
+    }
+
+    .role-option:checked + label {
+        border-color: var(--ink);
+        background: var(--ink);
+        color: var(--paper);
+    }
+
+    .role-option:checked + label .role-sub { color: #ccc; }
+
+    #role { display: none; }
+
+    .auth-footer { margin-top: 2rem; font-size: 0.85rem; color: var(--muted); }
+    .auth-footer a { color: var(--ink); }
+
+    @media (max-width: 700px) {
+        .auth-wrap { grid-template-columns: 1fr; gap: 3rem; }
+        .auth-hero { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-hero">
+        <span class="eyebrow">Join the network</span>
+        <h1>Find your match in minutes.</h1>
+        <p>Whether you're raising your first round or deploying your next fund, VentureLink connects you with the right people — fast.</p>
+    </div>
+
+    <div class="auth-form">
+        <h2>Create your account</h2>
+        <form method="POST" id="reg-form">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group" style="margin-bottom: 0.5rem;">
+                <label>I am a...</label>
+            </div>
+            <div class="role-selector">
+                <div>
+                    <input type="radio" name="role_ui" id="role_startup" class="role-option" value="startup" checked>
+                    <label for="role_startup">
+                        <span class="role-title">Founder</span>
+                        <span class="role-sub">Raising capital</span>
+                    </label>
+                </div>
+                <div>
+                    <input type="radio" name="role_ui" id="role_investor" class="role-option" value="investor">
+                    <label for="role_investor">
+                        <span class="role-title">Investor</span>
+                        <span class="role-sub">Deploying capital</span>
+                    </label>
+                </div>
+            </div>
+            {{ form.role(id='role') }}
+
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(placeholder='you@company.com') }}
+                {% for e in form.email.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(placeholder='Min. 6 characters') }}
+                {% for e in form.password.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.confirm_password.label }}
+                {{ form.confirm_password(placeholder='Repeat password') }}
+                {% for e in form.confirm_password.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+            </div>
+
+            <div class="h-captcha" style="margin-top: 1.5rem;"
+                 data-sitekey="{{ config['HCAPTCHA_SITE_KEY'] }}"></div>
+
+            <div style="margin-top: 1.5rem;">
+                {{ form.submit(class='btn') }}
+            </div>
+        </form>
+        <p class="auth-footer">
+            Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.role-option').forEach(radio => {
+        radio.addEventListener('change', () => {
+            document.getElementById('role').value = radio.value;
+        });
+    });
+</script>
+{% endblock %}

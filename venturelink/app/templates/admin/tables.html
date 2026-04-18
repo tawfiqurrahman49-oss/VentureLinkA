@@ -1,0 +1,87 @@
+{% extends 'admin/base.html' %}
+{% block title %} — {{ table|capitalize }}s{% endblock %}
+ 
+{% block content %}
+<div class="topbar">
+  <h1>{{ table|capitalize }}s
+    <span style="font-size:13px;font-weight:400;color:var(--muted);margin-left:8px;">{{ rows.total }} records</span>
+  </h1>
+  <div class="topbar-actions">
+    {% if table in ['user', 'profile'] %}
+    <form class="search-wrap" method="get" action="">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search…">
+    </form>
+    {% endif %}
+  </div>
+</div>
+ 
+<div class="card">
+  <div class="table-wrap">
+    {% if rows.items %}
+    <table>
+      <thead>
+        <tr>
+          {% for col in columns %}<th>{{ col }}</th>{% endfor %}
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows.items %}
+        <tr>
+          {% for col in columns %}
+          <td>
+            {% set val = row[col] if row is mapping else row.__class__.__table__.columns[col] %}
+            {% set v = row|attr(col) %}
+            {% if col == 'role' and v %}
+              <span class="badge badge-{{ v }}">{{ v }}</span>
+            {% elif col == 'direction' and v %}
+              <span class="badge badge-{{ v }}">{{ v }}</span>
+            {% elif col == 'password' %}
+              <span style="color:var(--muted);font-family:monospace;font-size:11px;">••••••••</span>
+            {% elif v is none %}
+              <span style="color:var(--muted);">—</span>
+            {% else %}
+              {{ v }}
+            {% endif %}
+          </td>
+          {% endfor %}
+          <td class="actions">
+            <a href="{{ url_for('admin.edit_row', table=table, row_id=row.id) }}" class="btn btn-ghost btn-sm">Edit</a>
+            <form class="delete-form" method="post" action="{{ url_for('admin.delete_row', table=table, row_id=row.id) }}"
+                  onsubmit="return confirm('Delete {{ table }} #{{ row.id }}?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No records found{% if q %} for "{{ q }}"{% endif %}.</div>
+    {% endif %}
+  </div>
+</div>
+ 
+{% if rows.pages > 1 %}
+<div class="pagination" style="margin-top:1rem;">
+  {% if rows.has_prev %}
+    <a href="{{ url_for('admin.table_view', table=table, page=rows.prev_num, q=q) }}">← Prev</a>
+  {% endif %}
+  {% for p in rows.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+    {% if p %}
+      {% if p == rows.page %}
+        <span class="current">{{ p }}</span>
+      {% else %}
+        <a href="{{ url_for('admin.table_view', table=table, page=p, q=q) }}">{{ p }}</a>
+      {% endif %}
+    {% else %}
+      <span>…</span>
+    {% endif %}
+  {% endfor %}
+  {% if rows.has_next %}
+    <a href="{{ url_for('admin.table_view', table=table, page=rows.next_num, q=q) }}">Next →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

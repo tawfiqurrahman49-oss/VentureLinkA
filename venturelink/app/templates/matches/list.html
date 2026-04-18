@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% block title %}Matches — VentureLink{% endblock %}
+
+{% block extra_head %}
+<style>
+    .matches-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 3rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--rule);
+    }
+
+    .matches-header h1 { font-size: 2.5rem; }
+
+    .match-count {
+        font-family: var(--font-display);
+        font-size: 0.9rem;
+        font-style: italic;
+        color: var(--muted);
+    }
+
+    .matches-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1px;
+        background: var(--rule);
+        border: 1px solid var(--rule);
+    }
+
+    .match-card {
+        background: var(--card-bg);
+        padding: 2rem;
+        transition: background 0.15s;
+    }
+
+    .match-card:hover { background: #fdfbf8; }
+
+    .match-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .match-name {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+    }
+
+    .match-bio {
+        font-size: 0.85rem;
+        color: #555;
+        line-height: 1.6;
+        margin: 0.75rem 0 1.25rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .match-meta {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.25rem;
+    }
+
+    .match-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 1rem;
+        border-top: 1px solid var(--rule);
+    }
+
+    .match-date {
+        font-size: 0.7rem;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+    }
+
+    .match-website {
+        font-size: 0.75rem;
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .match-website:hover { text-decoration: underline; }
+
+    .match-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .btn-chat {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.85rem;
+        background: var(--ink);
+        color: var(--paper);
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 500;
+        transition: opacity 0.15s;
+    }
+
+    .btn-chat:hover { opacity: 0.8; }
+
+    /* EMPTY */
+    .no-matches {
+        padding: 6rem 2rem;
+        text-align: center;
+    }
+
+    .no-matches h2 {
+        font-family: var(--font-display);
+        font-size: 2rem;
+        font-weight: 400;
+        font-style: italic;
+        margin-bottom: 1rem;
+        color: var(--muted);
+    }
+
+    .no-matches p {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+    }
+
+    .matched-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.65rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--success);
+    }
+
+    .matched-badge::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background: var(--success);
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="matches-header">
+    <div>
+        <span class="label">Mutual connections</span>
+        <h1>Your Matches</h1>
+    </div>
+    <span class="match-count">{{ paired | length }} match{{ 'es' if paired | length != 1 else '' }}</span>
+</div>
+
+{% if paired %}
+<div class="matches-grid">
+    {% for item in paired %}
+    <div class="match-card">
+        <div class="match-card-top">
+            <div class="match-name">{{ item.profile.name }}</div>
+            <span class="tag {{ item.user.role }}">{{ item.user.role }}</span>
+        </div>
+
+        <div class="match-meta">
+            <span class="tag">{{ item.profile.industry | replace('_',' ') | title }}</span>
+            {% if item.profile.location %}
+            <span class="tag">{{ item.profile.location }}</span>
+            {% endif %}
+            {% if item.user.role == 'startup' and item.profile.stage %}
+            <span class="tag">{{ item.profile.stage | replace('_',' ') | title }}</span>
+            {% endif %}
+        </div>
+
+        <p class="match-bio">{{ item.profile.bio }}</p>
+
+        {% if item.user.role == 'startup' and item.profile.funding_ask %}
+        <div style="font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem;">
+            <span style="font-weight:500; color:var(--ink);">Raising {{ item.profile.funding_ask }}</span>
+            {% if item.profile.team_size %} · {{ item.profile.team_size }}-person team{% endif %}
+        </div>
+        {% endif %}
+
+        {% if item.user.role == 'investor' and item.profile.check_size %}
+        <div style="font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem;">
+            Check size: <span style="font-weight:500; color:var(--ink);">{{ item.profile.check_size | replace('_', ' – $') | replace('k','K') }}</span>
+        </div>
+        {% endif %}
+
+        <div class="match-footer">
+            <div>
+                <span class="matched-badge">Matched</span>
+                <span class="match-date" style="margin-left:0.75rem;">{{ item.match.created_at.strftime('%b %d, %Y') }}</span>
+            </div>
+            <div class="match-actions">
+                <a href="{{ url_for('matches.chat', match_id=item.match.id) }}" class="btn-chat">Chat →</a>
+                {% if item.profile.website %}
+                <a href="{{ item.profile.website }}" target="_blank" class="match-website">Visit →</a>
+                {% else %}
+                <a href="mailto:{{ item.user.email }}" class="match-website">Email →</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="no-matches">
+    <h2>No matches yet.</h2>
+    <p>Keep swiping — when both sides connect, you'll see them here.</p>
+    <a href="{{ url_for('swipe.deck') }}" class="btn">Go to Discover</a>
+</div>
+{% endif %}
+{% endblock %}

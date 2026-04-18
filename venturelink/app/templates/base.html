@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VentureLink{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --ink: #0e0e0e;
+            --paper: #f5f2ec;
+            --muted: #8a8680;
+            --rule: #d4cfc7;
+            --accent: #c8442a;
+            --accent-light: #f0e8e5;
+            --success: #2d6a4f;
+            --card-bg: #ffffff;
+            --font-display: 'Playfair Display', Georgia, serif;
+            --font-body: 'DM Sans', sans-serif;
+        }
+
+        html { font-size: 16px; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--paper);
+            color: var(--ink);
+            min-height: 100vh;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        /* NAV */
+        nav {
+            border-bottom: 1px solid var(--rule);
+            padding: 0 2rem;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--paper);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--ink);
+            text-decoration: none;
+        }
+
+        .nav-logo span { color: var(--accent); font-style: italic; }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .nav-links a:hover { color: var(--ink); }
+        .nav-links a.active { color: var(--ink); }
+
+        /* MAIN */
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* FLASH MESSAGES */
+        .flashes { list-style: none; margin-bottom: 1.5rem; }
+        .flash {
+            padding: 0.75rem 1rem;
+            border-left: 3px solid var(--accent);
+            background: var(--accent-light);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+        .flash.success { border-color: var(--success); background: #eaf4ee; }
+
+        /* TYPOGRAPHY */
+        h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 600;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+        }
+
+        h2 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        /* FORMS */
+        .form-group { margin-bottom: 1.5rem; }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--rule);
+            padding: 0.6rem 0;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 300;
+            color: var(--ink);
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-bottom-color: var(--ink);
+        }
+
+        .form-group textarea { resize: vertical; min-height: 100px; }
+
+        .field-error {
+            font-size: 0.75rem;
+            color: var(--accent);
+            margin-top: 0.3rem;
+        }
+
+        /* BUTTONS */
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border: 1px solid var(--ink);
+            background: var(--ink);
+            color: var(--paper);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .btn:hover { background: transparent; color: var(--ink); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--ink);
+        }
+
+        .btn-ghost:hover { background: var(--ink); color: var(--paper); }
+
+        .btn-accent {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .btn-accent:hover { background: #a8331b; border-color: #a8331b; color: white; }
+
+        /* DIVIDER */
+        .rule {
+            border: none;
+            border-top: 1px solid var(--rule);
+            margin: 2rem 0;
+        }
+
+        /* TAG */
+        .tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 0.25rem 0.6rem;
+            border: 1px solid var(--rule);
+            color: var(--muted);
+        }
+
+        .tag.startup { border-color: #2d6a4f33; color: var(--success); background: #eaf4ee; }
+        .tag.investor { border-color: #c8442a33; color: var(--accent); background: var(--accent-light); }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('swipe.deck') if current_user.is_authenticated else url_for('auth.login') }}" class="nav-logo">
+            Venture<span>Link</span>
+        </a>
+        {% if current_user.is_authenticated %}
+        <ul class="nav-links">
+            <li><a href="{{ url_for('swipe.deck') }}" {% if request.endpoint == 'swipe.deck' %}class="active"{% endif %}>Discover</a></li>
+            <li><a href="{{ url_for('matches.list') }}" {% if request.endpoint == 'matches.list' %}class="active"{% endif %}>Matches</a></li>
+            <li><a href="{{ url_for('profiles.edit') }}" {% if request.endpoint == 'profiles.edit' %}class="active"{% endif %}>Profile</a></li>
+            <li><a href="{{ url_for('auth.logout') }}">Sign out</a></li>
+        </ul>
+        {% endif %}
+    </nav>
+
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flashes">
+            {% for category, message in messages %}
+            <li class="flash {{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

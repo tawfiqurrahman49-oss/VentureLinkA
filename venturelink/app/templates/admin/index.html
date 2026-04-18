@@ -1,0 +1,36 @@
+{% extends 'admin/base.html' %}
+{% block title %} — Dashboard{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <h1>Dashboard</h1>
+  <div class="topbar-actions">
+    <span style="font-size:12px;color:var(--muted);">Logged in as {{ current_user.email }}</span>
+  </div>
+</div>
+
+<div class="stats-grid">
+  {% for table, count in stats.items() %}
+  <a href="{{ url_for('admin.table_view', table=table) }}" style="text-decoration:none;">
+    <div class="stat-card" style="border-top: 3px solid {{ colors[table] }};">
+      <div class="label">{{ table }}s</div>
+      <div class="value">{{ count }}</div>
+      <div class="sub">total records</div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>Quick access</h2>
+  </div>
+  <div style="padding:1.25rem; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:10px;">
+    {% for table in ['user','profile','swipe','match'] %}
+    <a href="{{ url_for('admin.table_view', table=table) }}" class="btn btn-ghost" style="justify-content:center;">
+      Browse {{ table }}s →
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

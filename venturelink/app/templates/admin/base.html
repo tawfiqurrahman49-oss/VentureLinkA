@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VentureLink Admin{% block title %}{% endblock %}</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  :root {
+    --bg:       #0d0d0f;
+    --surface:  #17171a;
+    --border:   #2a2a30;
+    --text:     #e8e8ec;
+    --muted:    #8a8a99;
+    --accent:   #6c63f6;
+    --accent-h: #8b85f8;
+    --danger:   #e05252;
+    --success:  #3ecf8e;
+    --warn:     #f4a135;
+    --radius:   8px;
+    --sidebar:  220px;
+  }
+ 
+  body {
+    font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+ 
+  /* ── Sidebar ── */
+  aside {
+    width: var(--sidebar);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+  }
+ 
+  .logo {
+    padding: 0 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+  .logo span {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: var(--text);
+  }
+  .logo em {
+    display: block;
+    font-size: 11px;
+    font-style: normal;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+ 
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.55rem 1.25rem;
+    color: var(--muted);
+    text-decoration: none;
+    border-radius: 0;
+    font-size: 13px;
+    transition: color 0.15s, background 0.15s;
+  }
+  nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  nav a.active { color: var(--accent-h); background: rgba(108,99,246,0.1); }
+  nav .icon { font-size: 15px; width: 18px; text-align: center; }
+ 
+  nav .section-label {
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 1rem 1.25rem 0.4rem;
+  }
+ 
+  /* ── Main ── */
+  main {
+    margin-left: var(--sidebar);
+    flex: 1;
+    padding: 2rem 2.5rem;
+    max-width: calc(100vw - var(--sidebar));
+  }
+ 
+  /* ── Topbar ── */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  .topbar h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+ 
+  /* ── Stat cards ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.25rem;
+  }
+  .stat-card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .stat-card .value {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: var(--text);
+  }
+  .stat-card .sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+ 
+  /* ── Table ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card-header h2 { font-size: 14px; font-weight: 600; }
+ 
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left;
+    padding: 0.65rem 1rem;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.025); }
+  tbody td { padding: 0.65rem 1rem; color: var(--text); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  tbody td.actions { white-space: nowrap; }
+ 
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    font-size: 12px; font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: #444; }
+  .btn-danger { background: transparent; color: var(--danger); border-color: rgba(224,82,82,0.3); }
+  .btn-danger:hover { background: rgba(224,82,82,0.08); }
+  .btn-sm { padding: 0.3rem 0.65rem; font-size: 11px; }
+ 
+  /* ── Search ── */
+  .search-wrap { position: relative; }
+  .search-wrap input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 0.4rem 0.75rem 0.4rem 2rem;
+    font-size: 13px;
+    width: 220px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap::before {
+    content: '⌕';
+    position: absolute; left: 0.6rem; top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted); font-size: 14px;
+    pointer-events: none;
+  }
+ 
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .badge-founder  { background: rgba(108,99,246,0.15); color: var(--accent-h); }
+  .badge-investor { background: rgba(62,207,142,0.12); color: var(--success); }
+  .badge-admin    { background: rgba(244,161,53,0.12); color: var(--warn); }
+  .badge-left     { background: rgba(224,82,82,0.12); color: var(--danger); }
+  .badge-right    { background: rgba(62,207,142,0.12); color: var(--success); }
+ 
+  /* ── Edit form ── */
+  .form-grid { display: grid; gap: 1.25rem; }
+  .form-field label {
+    display: block; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px;
+  }
+  .form-field input, .form-field textarea, .form-field select {
+    width: 100%; background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 13px; font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: var(--accent); }
+  .form-field textarea { resize: vertical; min-height: 90px; }
+  .form-field .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+ 
+  /* ── Flash messages ── */
+  .flash { padding: 0.7rem 1rem; border-radius: var(--radius); font-size: 13px; margin-bottom: 1.25rem; }
+  .flash-success { background: rgba(62,207,142,0.1); color: var(--success); border: 1px solid rgba(62,207,142,0.2); }
+  .flash-error   { background: rgba(224,82,82,0.1); color: var(--danger); border: 1px solid rgba(224,82,82,0.2); }
+ 
+  /* ── Pagination ── */
+  .pagination { display: flex; gap: 6px; align-items: center; margin-top: 1rem; }
+  .pagination a, .pagination span {
+    padding: 0.3rem 0.65rem; border-radius: 5px;
+    font-size: 12px; text-decoration: none;
+    border: 1px solid var(--border); color: var(--muted);
+  }
+  .pagination a:hover { border-color: #444; color: var(--text); }
+  .pagination .current { background: var(--accent); color: #fff; border-color: var(--accent); }
+ 
+  /* ── Delete confirm form ── */
+  .delete-form { display: inline; }
+  .empty-state { padding: 3rem; text-align: center; color: var(--muted); }
+</style>
+</head>
+<body>
+ 
+<aside>
+  <div class="logo">
+    <span>VentureLink</span>
+    <em>Admin Panel</em>
+  </div>
+  <nav>
+    <div class="section-label">Overview</div>
+    <a href="{{ url_for('admin.index') }}" class="{{ 'active' if request.endpoint == 'admin.index' }}">
+      <span class="icon">◈</span> Dashboard
+    </a>
+    <div class="section-label">Tables</div>
+    <a href="{{ url_for('admin.table_view', table='user') }}" class="{{ 'active' if request.view_args and request.view_args.get('table') == 'user' }}">
+      <span class="icon">◉</span> Users
+    </a>
+    <a href="{{ url_for('admin.table_view', table='profile') }}" class="{{ 'active' if request.view_args and request.view_args.get('table') == 'profile' }}">
+      <span class="icon">◎</span> Profiles
+    </a>
+    <a href="{{ url_for('admin.table_view', table='swipe') }}" class="{{ 'active' if request.view_args and request.view_args.get('table') == 'swipe' }}">
+      <span class="icon">◁▷</span> Swipes
+    </a>
+    <a href="{{ url_for('admin.table_view', table='match') }}" class="{{ 'active' if request.view_args and request.view_args.get('table') == 'match' }}">
+      <span class="icon">◈</span> Matches
+    </a>
+  </nav>
+</aside>
+ 
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash flash-{{ 'success' if cat == 'success' else 'error' }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+ 
+  {% block content %}{% endblock %}
+</main>
+ 
+</body>
+</html>

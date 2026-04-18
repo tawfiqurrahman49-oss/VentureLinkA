@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Edit Profile — VentureLink{% endblock %}
+
+{% block extra_head %}
+<style>
+    .profile-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 3rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--rule);
+    }
+
+    .profile-header h1 { font-size: 2rem; }
+
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 4rem;
+        max-width: 800px;
+    }
+
+    .profile-grid .full { grid-column: 1 / -1; }
+
+    .section-label {
+        font-size: 0.65rem;
+        font-weight: 500;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 2.5rem 0 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--rule);
+        grid-column: 1 / -1;
+    }
+
+    .form-actions { margin-top: 3rem; display: flex; gap: 1rem; align-items: center; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-header">
+    <div>
+        <span class="label">Your profile</span>
+        <h1>{{ 'Startup Details' if role == 'startup' else 'Investor Profile' }}</h1>
+    </div>
+    <span class="tag {{ role }}">{{ role }}</span>
+</div>
+
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="profile-grid">
+
+        <div class="section-label">Basic Information</div>
+
+        <div class="form-group">
+            {{ form.name.label }}
+            {{ form.name() }}
+            {% for e in form.name.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.industry.label }}
+            {{ form.industry() }}
+            {% for e in form.industry.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="form-group full">
+            {{ form.bio.label }}
+            {{ form.bio(rows=4) }}
+            {% for e in form.bio.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.location.label }}
+            {{ form.location(placeholder='e.g. San Francisco, CA') }}
+        </div>
+
+        <div class="form-group">
+            {{ form.website.label }}
+            {{ form.website(placeholder='https://') }}
+        </div>
+
+        {% if role == 'startup' %}
+        <div class="section-label">Fundraising Details</div>
+
+        <div class="form-group">
+            {{ form.stage.label }}
+            {{ form.stage() }}
+        </div>
+
+        <div class="form-group">
+            {{ form.funding_ask.label }}
+            {{ form.funding_ask(placeholder='e.g. $750K') }}
+        </div>
+
+        <div class="form-group">
+            {{ form.team_size.label }}
+            {{ form.team_size(placeholder='e.g. 4') }}
+        </div>
+
+        {% else %}
+        <div class="section-label">Investment Details</div>
+
+        <div class="form-group">
+            {{ form.check_size.label }}
+            {{ form.check_size() }}
+        </div>
+
+        <div class="form-group full">
+            {{ form.thesis.label }}
+            {{ form.thesis(rows=3, placeholder='What do you look for in an investment?') }}
+        </div>
+
+        <div class="form-group full">
+            {{ form.portfolio.label }}
+            {{ form.portfolio(placeholder='Stripe, Airbnb, Figma') }}
+        </div>
+        {% endif %}
+
+        <div class="form-actions full">
+            {{ form.submit(class='btn') }}
+            <a href="{{ url_for('swipe.deck') }}" class="btn btn-ghost">Cancel</a>
+        </div>
+
+    </div>
+</form>
+{% endblock %}

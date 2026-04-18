@@ -1,0 +1,597 @@
+{% extends 'base.html' %}
+{% block title %}Discover — VentureLink{% endblock %}
+
+{% block extra_head %}
+<style>
+    .deck-layout {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 5rem;
+        align-items: start;
+        padding-top: 1rem;
+    }
+
+    /* LEFT: CARD STACK */
+    .card-area {
+        position: relative;
+        min-height: 560px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-state h2 {
+        font-family: var(--font-display);
+        font-size: 1.8rem;
+        font-weight: 400;
+        margin-bottom: 1rem;
+        color: var(--ink);
+    }
+
+    .empty-state p {
+        color: var(--muted);
+        font-size: 0.9rem;
+        max-width: 300px;
+        margin: 0 auto 2rem;
+    }
+
+    /* CARD */
+    .swipe-card {
+        position: absolute;
+        width: 100%;
+        max-width: 480px;
+        background: var(--card-bg);
+        border: 1px solid var(--rule);
+        padding: 2.5rem;
+        cursor: grab;
+        user-select: none;
+        transition: transform 0.08s ease, box-shadow 0.08s ease;
+        will-change: transform;
+    }
+
+    .swipe-card:active { cursor: grabbing; }
+
+    .swipe-card:nth-child(2) {
+        transform: translateY(8px) rotate(1deg);
+        z-index: 1;
+        opacity: 0.7;
+    }
+
+    .swipe-card:nth-child(3) {
+        transform: translateY(16px) rotate(-1.5deg);
+        z-index: 0;
+        opacity: 0.4;
+    }
+
+    .swipe-card:first-child { z-index: 10; }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-name {
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+    }
+
+    .card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .card-bio {
+        font-size: 0.9rem;
+        line-height: 1.7;
+        color: #444;
+        margin-bottom: 1.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .card-details {
+        border-top: 1px solid var(--rule);
+        padding-top: 1.25rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .detail-item .detail-label {
+        font-size: 0.65rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.2rem;
+    }
+
+    .detail-item .detail-val {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--ink);
+    }
+
+    /* SWIPE OVERLAYS */
+    .vote-label {
+        position: absolute;
+        top: 2rem;
+        padding: 0.3rem 0.8rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        border: 2px solid;
+        opacity: 0;
+        transition: opacity 0.05s;
+        pointer-events: none;
+        z-index: 20;
+    }
+
+    .vote-pass {
+        left: 2rem;
+        color: var(--accent);
+        border-color: var(--accent);
+        transform: rotate(-10deg);
+    }
+
+    .vote-connect {
+        right: 2rem;
+        color: var(--success);
+        border-color: var(--success);
+        transform: rotate(8deg);
+    }
+
+    /* ACTION BUTTONS */
+    .action-btns {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .action-btn {
+        width: 56px;
+        height: 56px;
+        border: 1px solid var(--rule);
+        background: var(--card-bg);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        transition: border-color 0.15s, transform 0.1s, background 0.15s;
+        flex-shrink: 0;
+    }
+
+    .action-btn:hover { transform: scale(1.08); }
+
+    .action-btn.pass:hover { border-color: var(--accent); background: var(--accent-light); }
+    .action-btn.connect:hover { border-color: var(--success); background: #eaf4ee; }
+
+    /* RIGHT: SIDEBAR */
+    .deck-sidebar {
+        padding-top: 0.5rem;
+    }
+
+    .sidebar-heading {
+        font-size: 0.65rem;
+        font-weight: 500;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--rule);
+    }
+
+    .progress-info {
+        margin-bottom: 3rem;
+    }
+
+    .progress-num {
+        font-family: var(--font-display);
+        font-size: 3rem;
+        font-weight: 600;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+
+    .progress-label {
+        font-size: 0.8rem;
+        color: var(--muted);
+    }
+
+    .progress-bar-wrap {
+        margin-top: 1rem;
+        height: 2px;
+        background: var(--rule);
+        position: relative;
+    }
+
+    .progress-bar-fill {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        background: var(--ink);
+        transition: width 0.4s ease;
+    }
+
+    .how-it-works { margin-top: 2rem; }
+
+    .how-step {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        margin-bottom: 1.25rem;
+    }
+
+    .how-num {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 400;
+        color: var(--rule);
+        flex-shrink: 0;
+        width: 1.5rem;
+    }
+
+    .how-text {
+        font-size: 0.8rem;
+        color: var(--muted);
+        line-height: 1.6;
+    }
+
+    /* MATCH MODAL */
+    .match-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(14,14,14,0.85);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .match-modal-overlay.show { display: flex; }
+
+    .match-modal {
+        background: var(--paper);
+        padding: 3.5rem;
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+        animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes modalIn {
+        from { opacity: 0; transform: scale(0.9) translateY(20px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .match-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .match-modal h2 {
+        font-family: var(--font-display);
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+        font-style: italic;
+    }
+
+    .match-modal p {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+    }
+
+    .match-modal-actions { display: flex; gap: 0.75rem; justify-content: center; }
+
+    /* CARD FLYING ANIMATION */
+    @keyframes flyLeft {
+        to { transform: translateX(-130%) rotate(-25deg); opacity: 0; }
+    }
+    @keyframes flyRight {
+        to { transform: translateX(130%) rotate(25deg); opacity: 0; }
+    }
+
+    .flying-left { animation: flyLeft 0.35s ease forwards; }
+    .flying-right { animation: flyRight 0.35s ease forwards; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="deck-layout">
+    <!-- CARD STACK -->
+    <div>
+        <div class="card-area" id="card-area">
+            {% if candidates %}
+                {% for user in candidates %}
+                <div class="swipe-card" data-id="{{ user.id }}">
+                    <span class="vote-label vote-pass">Pass</span>
+                    <span class="vote-label vote-connect">Connect</span>
+
+                    <div class="card-header">
+                        <div class="card-name">{{ user.profile.name }}</div>
+                        <span class="tag {{ user.role }}">{{ user.role }}</span>
+                    </div>
+
+                    <div class="card-meta">
+                        <span class="tag">{{ user.profile.industry | replace('_', ' ') | title }}</span>
+                        {% if user.profile.location %}
+                        <span class="tag">{{ user.profile.location }}</span>
+                        {% endif %}
+                        {% if user.role == 'startup' and user.profile.stage %}
+                        <span class="tag">{{ user.profile.stage | replace('_', ' ') | title }}</span>
+                        {% endif %}
+                    </div>
+
+                    <p class="card-bio">{{ user.profile.bio }}</p>
+
+                    <div class="card-details">
+                        {% if user.role == 'startup' %}
+                            {% if user.profile.funding_ask %}
+                            <div class="detail-item">
+                                <div class="detail-label">Raising</div>
+                                <div class="detail-val">{{ user.profile.funding_ask }}</div>
+                            </div>
+                            {% endif %}
+                            {% if user.profile.team_size %}
+                            <div class="detail-item">
+                                <div class="detail-label">Team</div>
+                                <div class="detail-val">{{ user.profile.team_size }} people</div>
+                            </div>
+                            {% endif %}
+                            {% if user.profile.website %}
+                            <div class="detail-item" style="grid-column: 1/-1;">
+                                <div class="detail-label">Website</div>
+                                <div class="detail-val">
+                                    <a href="{{ user.profile.website }}" target="_blank" style="color:var(--accent); text-decoration:none; font-size:0.8rem;">{{ user.profile.website | replace('https://','') | replace('http://','') | truncate(40) }}</a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            {% if user.profile.check_size %}
+                            <div class="detail-item">
+                                <div class="detail-label">Check Size</div>
+                                <div class="detail-val">{{ user.profile.check_size | replace('_', ' – $') | replace('k', 'K') }}</div>
+                            </div>
+                            {% endif %}
+                            {% if user.profile.portfolio %}
+                            <div class="detail-item" style="grid-column:1/-1;">
+                                <div class="detail-label">Portfolio</div>
+                                <div class="detail-val">{{ user.profile.portfolio | truncate(60) }}</div>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <h2>You've seen everyone.</h2>
+                    <p>Check back soon as new {{ 'investors' if current_user.role == 'startup' else 'founders' }} join the network.</p>
+                    <a href="{{ url_for('matches.list') }}" class="btn">View your matches</a>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if candidates %}
+        <div class="action-btns">
+            <button class="action-btn pass" id="btn-pass" title="Pass">✕</button>
+            <button class="action-btn connect" id="btn-connect" title="Connect">✓</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="deck-sidebar">
+        <div class="sidebar-heading">Your queue</div>
+
+        <div class="progress-info">
+            <div class="progress-num" id="remaining-count">{{ candidates | length }}</div>
+            <div class="progress-label">{{ 'investors' if current_user.role == 'startup' else 'founders' }} to review</div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="progress-fill" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div class="sidebar-heading">How it works</div>
+        <div class="how-it-works">
+            <div class="how-step">
+                <span class="how-num">01</span>
+                <span class="how-text">Review each profile — read their bio, stage, and investment thesis.</span>
+            </div>
+            <div class="how-step">
+                <span class="how-num">02</span>
+                <span class="how-text">Connect ✓ if you're interested. Pass ✕ if it's not a fit.</span>
+            </div>
+            <div class="how-step">
+                <span class="how-num">03</span>
+                <span class="how-text">When both sides connect, it's a match. Reach out and start the conversation.</span>
+            </div>
+        </div>
+
+        <hr class="rule">
+
+        <a href="{{ url_for('matches.list') }}" style="font-size:0.8rem; color: var(--muted); text-decoration:none; display:flex; align-items:center; gap:0.5rem;">
+            <span>→</span> View matches
+        </a>
+    </div>
+</div>
+
+<!-- MATCH MODAL -->
+<div class="match-modal-overlay" id="match-modal">
+    <div class="match-modal">
+        <span class="match-icon">✦</span>
+        <h2>It's a match.</h2>
+        <p id="match-message">You and <strong id="match-name"></strong> are both interested. Reach out and start the conversation.</p>
+        <div class="match-modal-actions">
+            <a href="{{ url_for('matches.list') }}" class="btn">View matches</a>
+            <button class="btn btn-ghost" id="modal-close">Keep swiping</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const area = document.getElementById('card-area');
+    const btnPass = document.getElementById('btn-pass');
+    const btnConnect = document.getElementById('btn-connect');
+    const matchModal = document.getElementById('match-modal');
+    const matchName = document.getElementById('match-name');
+    const modalClose = document.getElementById('modal-close');
+    const remainingCount = document.getElementById('remaining-count');
+    const progressFill = document.getElementById('progress-fill');
+
+    const total = parseInt(remainingCount?.textContent || '0');
+    let swiped = 0;
+
+    function getTopCard() {
+        return area?.querySelector('.swipe-card:not(.flying-left):not(.flying-right)');
+    }
+
+    function updateProgress() {
+        if (!remainingCount) return;
+        const left = total - swiped;
+        remainingCount.textContent = left;
+        progressFill.style.width = (swiped / total * 100) + '%';
+    }
+
+    async function doSwipe(card, direction) {
+        const userId = card.dataset.id;
+        const passLabel = card.querySelector('.vote-pass');
+        const connectLabel = card.querySelector('.vote-connect');
+
+        // Show label
+        if (direction === 'left') {
+            passLabel.style.opacity = '1';
+        } else {
+            connectLabel.style.opacity = '1';
+        }
+
+        // Fly animation
+        card.classList.add(direction === 'left' ? 'flying-left' : 'flying-right');
+        swiped++;
+        updateProgress();
+
+        // API call
+        try {
+            const res = await fetch('/swipe/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ swiped_id: parseInt(userId), direction: direction === 'left' ? 'left' : 'right' })
+            });
+            const data = await res.json();
+            if (data.match && data.match_user) {
+                setTimeout(() => {
+                    matchName.textContent = data.match_user.name;
+                    matchModal.classList.add('show');
+                }, 400);
+            }
+        } catch(e) {}
+
+        setTimeout(() => { card.remove(); }, 380);
+    }
+
+    // BUTTON ACTIONS
+    btnPass?.addEventListener('click', () => {
+        const card = getTopCard();
+        if (card) doSwipe(card, 'left');
+    });
+
+    btnConnect?.addEventListener('click', () => {
+        const card = getTopCard();
+        if (card) doSwipe(card, 'right');
+    });
+
+    // DRAG / SWIPE
+    let startX, startY, isDragging = false, currentCard = null;
+
+    function onDragStart(e) {
+        currentCard = e.currentTarget;
+        startX = (e.touches ? e.touches[0].clientX : e.clientX);
+        startY = (e.touches ? e.touches[0].clientY : e.clientY);
+        isDragging = true;
+        currentCard.style.transition = 'none';
+    }
+
+    function onDragMove(e) {
+        if (!isDragging || !currentCard) return;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+        const rotate = dx * 0.05;
+        currentCard.style.transform = `translate(${dx}px, ${dy}px) rotate(${rotate}deg)`;
+
+        const passLabel = currentCard.querySelector('.vote-pass');
+        const connectLabel = currentCard.querySelector('.vote-connect');
+        if (dx < -20) { passLabel.style.opacity = Math.min(1, (-dx - 20) / 80); connectLabel.style.opacity = 0; }
+        else if (dx > 20) { connectLabel.style.opacity = Math.min(1, (dx - 20) / 80); passLabel.style.opacity = 0; }
+        else { passLabel.style.opacity = 0; connectLabel.style.opacity = 0; }
+    }
+
+    function onDragEnd(e) {
+        if (!isDragging || !currentCard) return;
+        isDragging = false;
+        const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+        const dx = clientX - startX;
+        currentCard.style.transition = '';
+
+        if (dx < -80) {
+            doSwipe(currentCard, 'left');
+        } else if (dx > 80) {
+            doSwipe(currentCard, 'right');
+        } else {
+            currentCard.style.transform = '';
+            currentCard.querySelector('.vote-pass').style.opacity = 0;
+            currentCard.querySelector('.vote-connect').style.opacity = 0;
+        }
+        currentCard = null;
+    }
+
+    // Attach drag listeners to all cards
+    document.querySelectorAll('.swipe-card').forEach(card => {
+        card.addEventListener('mousedown', onDragStart);
+        card.addEventListener('touchstart', onDragStart, { passive: true });
+    });
+
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('touchmove', onDragMove, { passive: true });
+    document.addEventListener('mouseup', onDragEnd);
+    document.addEventListener('touchend', onDragEnd);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+        const card = getTopCard();
+        if (!card) return;
+        if (e.key === 'ArrowLeft') doSwipe(card, 'left');
+        if (e.key === 'ArrowRight') doSwipe(card, 'right');
+    });
+
+    // Modal close
+    modalClose?.addEventListener('click', () => matchModal.classList.remove('show'));
+    matchModal?.addEventListener('click', e => {
+        if (e.target === matchModal) matchModal.classList.remove('show');
+    });
+})();
+</script>
+{% endblock %}
